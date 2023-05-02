@@ -3,8 +3,8 @@
     @description:
 
     @version: 0.1
-    @updated: "2023-05-02 19:30:00"
-    @revision: 100
+    @updated: "2023-05-02 19:37:33"
+    @revision: 108
     @localfile: ?defaultpath\Scripts\?@name.lsl
     @license: MIT
 
@@ -12,9 +12,9 @@
 
     @notice:
 */
-string homeURI = "";
+//string homeURI = "";
 //string homeURI = "http://grid.3rdrockgrid.com:8002/";
-//string homeURI = "http://login.osgrid.org/";
+string homeURI = "http://hg.osgrid.org/";
 //string homeURI = "http://hg.osgrid.org/";
 //string homeURI = "http://discoverygrid.net:8002/";
 
@@ -122,11 +122,11 @@ default
         {
             string profileServer = parseXMLValue(body, "SRV_ProfileServerURI");
             if (profileServer!="")
-                requestProfileImage(homeURI, avatarKey);
+                requestProfileImage(profileServer, avatarKey);
         }
         else if (request_id == http_request_image)
         {
-            llOwnerSay(body);
+            llOwnerSay("body: "+body);
             string imageID = llJsonGetValue(body, ["result", "ImageId"]);
             if (imageID == "")
                 imageID = TEXTURE_BLANK;
