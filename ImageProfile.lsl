@@ -3,8 +3,8 @@
     @description:
 
     @version: 0.1
-    @updated: "2023-05-03 18:52:26"
-    @revision: 170
+    @updated: "2023-05-03 23:21:25"
+    @revision: 175
     @localfile: ?defaultpath\Scripts\?@name.lsl
     @license: MIT
 
@@ -12,13 +12,15 @@
 
     @notice:
 */
-//string homeURI = "";
+
+string homeURI = ""; //* set homeURI get override if osGetAvatarHomeURI not enabled, you can get it by link messages
+
 //string homeURI = "http://grid.3rdrockgrid.com:8002/";
 //string homeURI = "http://login.osgrid.org/";
-string homeURI = "http://hg.osgrid.org/";
+//string homeURI = "http://hg.osgrid.org/";
 //string homeURI = "http://discoverygrid.net:8002/";
 
-integer face = 2;
+integer face = 2; //* a face to change texture to put profile image on it
 
 //*-----------------------------------------------------------
 
@@ -51,6 +53,8 @@ integer req_id = 0; //* just an id send to server and reposnd by it
 }
 */
 
+//* Using JSON-RPC to fetch the uuid of profile image of uuid
+//* should send to service uri that come from XML-RPC
 requestProfileImage(string profilServer, key aviKey)
 {
     req_id++;
@@ -67,6 +71,25 @@ requestProfileImage(string profilServer, key aviKey)
 
 key http_profile_server = NULL_KEY;
 
+//* Using XML-RPC to get the uri of of profile server, i wish we can use jspn-rpc, maybe we need to ask it as feature request
+requestProfileServer(key aviKey)
+{
+    avatarKey = aviKey;
+    string home = getHomeURI(aviKey);
+    req_id++;
+    string request = "<?xml version=\"1.0\" encoding=\"utf-8\"?>";
+    request += "<methodCall>";
+        request += "<id>"+(string)req_id+"</id>";
+        request += "<methodName>get_server_urls</methodName>";
+        request += "<params>";
+            request += "<param><value><struct>";
+            request += "<member><name>userID</name><value><string>"+ (string)aviKey +"</string></value></member></struct></value></param>";
+        request += "</params>";
+    request += "</methodCall>";
+    http_profile_server = llHTTPRequest(home, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/xml"], request);
+}
+
+//* a trick to get override if osGetAvatarHomeURI not exists
 string getHomeURI(key aviKey)
 {
     string home;
@@ -86,30 +109,13 @@ string getHomeURI(key aviKey)
     return home;
 }
 
-requestProfileServer(key aviKey)
-{
-    avatarKey = aviKey;
-    string home = getHomeURI(aviKey);
-    req_id++;
-    string request = "<?xml version=\"1.0\" encoding=\"utf-8\"?>";
-    request += "<methodCall>";
-        request += "<id>"+(string)req_id+"</id>";
-        request += "<methodName>get_server_urls</methodName>";
-        request += "<params>";
-            request += "<param><value><struct>";
-            request += "<member><name>userID</name><value><string>"+ (string)aviKey +"</string></value></member></struct></value></param>";
-        request += "</params>";
-    request += "</methodCall>";
-    http_profile_server = llHTTPRequest(home, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/xml"], request);
-}
-
-//* convert xml to list (strided)
+//* convert xml to strided list, stuid idea but it work :)
 string parseXMLValue(string xml, string name)
 {
     integer p = llSubStringIndex(xml, "?>"); //* remove xml header
     xml = llGetSubString(xml, p + 1, -1);
 
-    //* if we have regex :( we will use "/<name>(.+)<\/name>|<string>(.+)<\/string>/"
+    //* if we have regex :( we will use "/<name>(.+)<\/name>|<string>(.+)<\/string>/" //* ChatGPT hand is here yes :D
     //* or this stupid idea do not laugh
     list matches = llParseString2List(xml, ["methodResponse>", "params>", "param>", "value>", "struct>", "member>", "name>", "string>", "</", "<", ">"], ["\n", " "]);
 
