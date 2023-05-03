@@ -3,14 +3,19 @@
     @description:
 
     @version: 0.1
-    @updated: "2023-05-03 23:21:25"
-    @revision: 175
+    @updated: "2023-05-03 23:28:42"
+    @revision: 179
     @localfile: ?defaultpath\Scripts\?@name.lsl
     @license: MIT
 
     @ref:
 
     @notice:
+
+    Getting Profile Server by XML-RPC from Avatar server
+    Using the Profile Server to get avatar image uuid texture, by JSON-RPC
+    profile server need it for OSGRID for example, because profile server is different than the avatar grid server,
+    some grids have same servers for both.
 */
 
 string homeURI = ""; //* set homeURI get override if osGetAvatarHomeURI not enabled, you can get it by link messages
@@ -24,7 +29,6 @@ integer face = 2; //* a face to change texture to put profile image on it
 
 //*-----------------------------------------------------------
 
-key http_request_image = NULL_KEY;
 key avatarKey = NULL_KEY; //* avatar to get profile image
 integer req_id = 0; //* just an id send to server and reposnd by it
 
@@ -52,6 +56,8 @@ integer req_id = 0; //* just an id send to server and reposnd by it
   }
 }
 */
+
+key http_request_image = NULL_KEY;
 
 //* Using JSON-RPC to fetch the uuid of profile image of uuid
 //* should send to service uri that come from XML-RPC
@@ -176,5 +182,4 @@ default
              requestProfileServer(id);
         }
     }
-
 }
