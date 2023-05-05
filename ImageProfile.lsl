@@ -3,8 +3,8 @@
     @description:
 
     @version: 0.1
-    @updated: "2023-05-03 23:28:42"
-    @revision: 179
+    @updated: "2023-05-06 00:32:27"
+    @revision: 198
     @localfile: ?defaultpath\Scripts\?@name.lsl
     @license: MIT
 
@@ -16,6 +16,11 @@
     Using the Profile Server to get avatar image uuid texture, by JSON-RPC
     profile server need it for OSGRID for example, because profile server is different than the avatar grid server,
     some grids have same servers for both.
+
+    @todo:
+        Make compatiple with SL?
+        https://wiki.secondlife.com/wiki/LlGetUsername
+        "secondlife:///app/agent/" + (string)id + "/username"
 */
 
 string homeURI = ""; //* set homeURI get override if osGetAvatarHomeURI not enabled, you can get it by link messages
@@ -26,6 +31,7 @@ string homeURI = ""; //* set homeURI get override if osGetAvatarHomeURI not enab
 //string homeURI = "http://discoverygrid.net:8002/";
 
 integer face = 2; //* a face to change texture to put profile image on it
+string defaultTexture = "default";
 
 //*-----------------------------------------------------------
 
@@ -109,9 +115,8 @@ string getHomeURI(key aviKey)
             home = "http://"+llStringTrim(llGetSubString(name, p + 1, llStringLength(name)), STRING_TRIM);
         else
             home = homeURI;
-//		llOwnerSay(name);
+//        llOwnerSay(name);
     }
-//	llOwnerSay("home:`"+home+"`");
     return home;
 }
 
@@ -126,16 +131,33 @@ string parseXMLValue(string xml, string name)
     list matches = llParseString2List(xml, ["methodResponse>", "params>", "param>", "value>", "struct>", "member>", "name>", "string>", "</", "<", ">"], ["\n", " "]);
 
     p = llListFindList(matches, [name]);
-    //llOwnerSay(llDumpList2String(matches, "\n"));
+    if (p>=0)
+        return llList2String(matches, p+1);
+    else
+        return "";
+ //   llOwnerSay(llDumpList2String(matches, "\n"));
     //llOwnerSay("server: " + llList2String(matches, p+1));
-    return llList2String(matches, p+1);
+}
+
+
+resetTexture()
+{
+    key image = llGetInventoryKey(defaultTexture);
+    if (image == NULL_KEY)
+        image = TEXTURE_BLANK;
+    llSetTexture(image, face);
 }
 
 default
 {
     state_entry()
     {
-        llSetTexture(TEXTURE_BLANK, face);
+        resetTexture();
+    }
+
+    on_rez(integer number)
+    {
+        resetTexture();
     }
 
     touch_start(integer number)
@@ -160,7 +182,7 @@ default
         {
             string imageID = llJsonGetValue(body, ["result", "ImageId"]);
             if (imageID == "")
-                imageID = TEXTURE_BLANK;
+                resetTexture();
             else
                 llSetTexture(imageID, face);
         }
@@ -174,12 +196,15 @@ default
         if (cmd == "homeuri")
         {
             homeURI = llList2String(params, 0);
-            llSetTexture(TEXTURE_BLANK, face);
-//            llOwnerSay("homeURI:"+homeURI);
+            resetTexture();
+            //llOwnerSay("homeURI:"+homeURI);
         }
         else if (cmd == "profile_image")
         {
-             requestProfileServer(id);
+            if (id == NULL_KEY)
+                resetTexture();
+            else
+                requestProfileServer(id);
         }
     }
 }
